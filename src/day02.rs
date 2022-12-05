@@ -1,5 +1,4 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use itertools::Itertools;
 use crate::utils::CollectArray;
 
 type Input = Vec<[char; 2]>;
@@ -20,6 +19,7 @@ fn part1(input: &Input) -> u32 {
     input.iter()
         .map(|&[them, me]| {
             let shape_score = me as u32 - 'W' as u32;
+            #[allow(clippy::match_same_arms)]
             let win_score = match (me, them) {
                 ('X', 'A') => 3,
                 ('X', 'B') => 0,
