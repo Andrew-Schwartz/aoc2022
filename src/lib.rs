@@ -6,6 +6,8 @@
 #![feature(iter_array_chunks)]
 #![feature(type_alias_impl_trait)]
 #![feature(array_windows)]
+#![feature(unboxed_closures)]
+#![feature(fn_traits)]
 
 #![warn(clippy::pedantic)]
 

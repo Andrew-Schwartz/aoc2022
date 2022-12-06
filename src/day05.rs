@@ -8,9 +8,7 @@ use nom::{
     sequence::tuple,
 };
 
-use utils::number;
-
-use crate::utils;
+use crate::utils::{ByteLines, number, SplitSliceOnce};
 
 type Input = (Vec<Vec<u8>>, Vec<Step>);
 
@@ -22,14 +20,14 @@ struct Step {
 }
 
 impl Step {
-    fn parse(input: &str) -> IResult<&str, Self> {
+    fn parse(input: &[u8]) -> IResult<&[u8], Self> {
         tuple((
             tag("move "),
-            number::<u8>,
+            number,
             tag(" from "),
-            number::<u8>,
+            number::<_, u8>,
             tag(" to "),
-            number::<u8>,
+            number::<_, u8>,
         )).map(|(_, n, _, from, _, to)| Self {
             n,
             from: from - 1,
@@ -39,22 +37,19 @@ impl Step {
 }
 
 #[aoc_generator(day5)]
-fn gen(input: &str) -> Input {
-    let (boxes, steps) = input.split_once("\n\n").unwrap();
+fn gen(input: &[u8]) -> Input {
+    let (boxes, steps) = input.split_once(b"\n\n").unwrap();
 
-    let (boxes, labels) = boxes.rsplit_once('\n').unwrap();
-    let len = labels.chars().last()
-        .unwrap()
-        .to_digit(10)
-        .unwrap()
-        as usize;
-    let mut vec = vec![Vec::new(); len];
+    let (boxes, labels) = boxes.rsplit_once(b"\n").unwrap();
+
+    let len = labels.last().unwrap() - b'0';
+    let mut vec = vec![Vec::new(); len as _];
     for line in boxes.lines() {
-        let mut chunks = line.bytes().enumerate().array_chunks();
-        while let Some([_, (i, c), _, _]) = chunks.next() {
+        let mut chunks = line.iter().enumerate().array_chunks();
+        while let Some([_, (i, &c), _, _]) = chunks.next() {
             if c != b' ' { vec[i / 4].push(c) }
         }
-        if let &[_, (i, c), _] = chunks.into_remainder().unwrap().as_slice() {
+        if let &[_, (i, &c), _] = chunks.into_remainder().unwrap().as_slice() {
             vec[i / 4].push(c)
         }
     }

@@ -10,17 +10,17 @@ use crate::utils::number;
 
 type Input = Vec<[Range<u8>; 2]>;
 
-fn parse_line(input: &str) -> IResult<&str, [Range<u8>; 2]> {
+fn parse_line(input: &[u8]) -> IResult<&[u8], [Range<u8>; 2]> {
     separated_pair(
-        separated_pair(number::<u8>, char('-'), number::<u8>),
+        separated_pair(number, char('-'), number),
         char(','),
-        separated_pair(number::<u8>, char('-'), number::<u8>),
+        separated_pair(number, char('-'), number),
     ).map(|((a1, a2), (b1, b2))| [a1..a2, b1..b2])
         .parse(input)
 }
 
 #[aoc_generator(day4)]
-fn gen(input: &str) -> Input {
+fn gen(input: &[u8]) -> Input {
     separated_list0(newline, parse_line).parse(input)
         .unwrap()
         .1
