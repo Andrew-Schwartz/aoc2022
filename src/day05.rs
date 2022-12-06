@@ -1,17 +1,15 @@
-use std::str::FromStr;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
 use nom::{
     bytes::complete::tag,
-    character::complete::digit1,
-    IResult,
-    Parser,
-    sequence::tuple,
     character::complete::line_ending,
+    IResult,
     multi::separated_list0,
-    combinator::map_res
+    Parser,
+    sequence::tuple
 };
+use utils::number;
+use crate::utils;
 
 type Input = (Vec<Vec<char>>, Vec<Step>);
 
@@ -20,10 +18,6 @@ struct Step {
     n: usize,
     from: usize,
     to: usize,
-}
-
-fn number<N: FromStr>(input: &str) -> IResult<&str, N> {
-    map_res(digit1, FromStr::from_str).parse(input)
 }
 
 impl Step {

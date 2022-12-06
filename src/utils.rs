@@ -1,6 +1,11 @@
 use std::array;
 
 use itertools::Itertools;
+use std::str::FromStr;
+use arrayvec::ArrayVec;
+use nom::{IResult, Parser};
+use nom::combinator::map_res;
+use nom::character::complete::digit1;
 
 pub trait CollectArray<T> {
     fn collect_array<const N: usize>(self) -> Result<[T; N], Result<Vec<T>, array::IntoIter<T, N>>>;
@@ -58,3 +63,29 @@ tuple_iter!(0 1 2 3 4 5 6);
 tuple_iter!(0 1 2 3 4 5 6 7);
 tuple_iter!(0 1 2 3 4 5 6 7 8);
 tuple_iter!(0 1 2 3 4 5 6 7 8 9);
+
+pub fn number<N: FromStr>(input: &str) -> IResult<&str, N> {
+    map_res(digit1, FromStr::from_str).parse(input)
+}
+
+pub trait TryRemove<T> {
+    type Index;
+
+    fn try_remove(&mut self, index: Self::Index) -> Option<T>;
+}
+
+impl<T> TryRemove<T> for Vec<T> {
+    type Index = usize;
+
+    fn try_remove(&mut self, index: Self::Index) -> Option<T> {
+        (index < self.len()).then(|| self.remove(index))
+    }
+}
+
+impl<T, const CAP: usize> TryRemove<T> for ArrayVec<T, CAP> {
+    type Index = usize;
+
+    fn try_remove(&mut self, index: Self::Index) -> Option<T> {
+        (index < self.len()).then(|| self.remove(index))
+    }
+}

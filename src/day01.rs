@@ -1,24 +1,33 @@
-use std::collections::binary_heap::BinaryHeap;
+use aoc_runner_derive::aoc;
+use arrayvec::ArrayVec;
 
-use aoc_runner_derive::{aoc, aoc_generator};
+use crate::utils::TryRemove;
 
-type Data<T> = BinaryHeap<T>;
-
-#[aoc_generator(day1)]
-fn gen(input: &str) -> Data<u32> {
+fn gen(input: &str) -> impl Iterator<Item=u32> + '_ {
     input.split("\n\n")
         .map(|group| group.lines()
             .map(|line| line.parse::<u32>().unwrap())
             .sum())
-        .collect()
 }
 
 #[aoc(day1, part1)]
-fn part1(input: &Data<u32>) -> u32 {
-    *input.iter().next().unwrap()
+fn part1(input: &str) -> u32 {
+    gen(input)
+        .max()
+        .unwrap()
 }
 
 #[aoc(day1, part2)]
-fn part2(input: &Data<u32>) -> u32 {
-    input.iter().take(3).sum()
+fn part2(input: &str) -> u32 {
+    gen(input)
+        .fold(ArrayVec::<_, 3>::new(), |mut arr, cals| {
+            let idx = arr.partition_point(|&n| n > cals);
+            if idx != 3 {
+                arr.try_remove(3 - 1);
+                arr.insert(idx, cals);
+            }
+            arr
+        })
+        .into_iter()
+        .sum()
 }
