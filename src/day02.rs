@@ -1,56 +1,47 @@
-use aoc_runner_derive::{aoc, aoc_generator};
-use crate::utils::CollectArray;
+use std::hint::unreachable_unchecked;
+use aoc_runner_derive::aoc;
 
-type Input = Vec<[char; 2]>;
-
-#[aoc_generator(day2)]
-fn gen(input: &str) -> Input {
-    input.lines()
-        .map(|l| l.chars()
-            .filter(|c| !c.is_ascii_whitespace())
-            .take(2)
-            .collect_array()
-            .unwrap())
-        .collect()
+fn gen(input: &[u8]) -> impl Iterator<Item=(u8, u8)> + '_ {
+    input.split(|&c| c == b'\n')
+        .map(|line| match line {
+            &[a, b' ', b] => (a, b),
+            _ => unsafe { unreachable_unchecked() },
+        })
 }
 
 #[aoc(day2, part1)]
-fn part1(input: &Input) -> u32 {
-    input.iter()
-        .map(|&[them, me]| {
-            let shape_score = me as u32 - 'W' as u32;
-            #[allow(clippy::match_same_arms)]
-            let win_score = match (me, them) {
-                ('X', 'A') => 3,
-                ('X', 'B') => 0,
-                ('X', 'C') => 6,
-                ('Y', 'A') => 6,
-                ('Y', 'B') => 3,
-                ('Y', 'C') => 0,
-                ('Z', 'A') => 0,
-                ('Z', 'B') => 6,
-                ('Z', 'C') => 3,
-                _ => unreachable!(),
-            };
-            shape_score + win_score
-        })
-        .sum()
+fn part1(input: &[u8]) -> u32 {
+    gen(input).map(|(them, me)| {
+        let shape_score = me - b'W';
+        #[allow(clippy::match_same_arms)]
+        let win_score = match (me, them) {
+            (b'X', b'A') => 3,
+            (b'X', b'B') => 0,
+            (b'X', b'C') => 6,
+            (b'Y', b'A') => 6,
+            (b'Y', b'B') => 3,
+            (b'Y', b'C') => 0,
+            (b'Z', b'A') => 0,
+            (b'Z', b'B') => 6,
+            (b'Z', b'C') => 3,
+            _ => unsafe { unreachable_unchecked() },
+        };
+        shape_score + win_score
+    }).map(u32::from).sum()
 }
 
 #[aoc(day2, part2)]
-fn part2(input: &Input) -> u32 {
-    input.iter()
-        .map(|&[them, result]| {
-            let win_score = (result as u32 - 'X' as u32) * 3;
-            let them_u32 = them as u32 - 'A' as u32;
-            let shape_score = match result {
-                // lose
-                'X' => (if them_u32 == 0 { 3 } else { them_u32 }) - 1,
-                'Y' => them_u32,
-                'Z' => (them_u32 + 1) % 3,
-                _ => unreachable!()
-            } + 1;
-            win_score + shape_score
-        })
-        .sum()
+fn part2(input: &[u8]) -> u32 {
+    gen(input).map(|(them, result)| {
+        let win_score = (result - b'X') * 3;
+        let them_u32 = them - b'A';
+        let shape_score = match result {
+            // lose
+            b'X' => (if them_u32 == 0 { 3 } else { them_u32 }) - 1,
+            b'Y' => them_u32,
+            b'Z' => (them_u32 + 1) % 3,
+            _ => unsafe { unreachable_unchecked() },
+        } + 1;
+        win_score + shape_score
+    }).map(u32::from).sum()
 }

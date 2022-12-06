@@ -1,3 +1,4 @@
+use std::hint::unreachable_unchecked;
 use std::ops::BitOr;
 
 use aoc_runner_derive::aoc;
@@ -7,7 +8,7 @@ fn score(c: &u8) -> u64 {
     match c {
         lower @ b'a'..=b'z' => lower - b'a' + 1,
         upper @ b'A'..=b'Z' => upper - b'A' + 27,
-        _ => unreachable!(),
+        _ => unsafe { unreachable_unchecked() },
     }.into()
 }
 

@@ -4,6 +4,7 @@
 #![feature(iter_next_chunk)]
 #![feature(generic_const_exprs)]
 #![feature(iter_array_chunks)]
+#![feature(type_alias_impl_trait)]
 
 #![warn(clippy::pedantic)]
 
