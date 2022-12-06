@@ -1,17 +1,18 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use itertools::Itertools;
 use nom::{
     bytes::complete::tag,
     character::complete::line_ending,
     IResult,
     multi::separated_list0,
     Parser,
-    sequence::tuple
+    sequence::tuple,
 };
+
 use utils::number;
+
 use crate::utils;
 
-type Input = (Vec<Vec<char>>, Vec<Step>);
+type Input = (Vec<Vec<u8>>, Vec<Step>);
 
 #[derive(Debug)]
 struct Step {
@@ -48,14 +49,15 @@ fn gen(input: &str) -> Input {
         .unwrap()
         as usize;
     let mut vec = vec![Vec::new(); len];
-    boxes.lines()
-        .for_each(|line| line.chars()
-            .chunks(4)
-            .into_iter()
-            .enumerate()
-            .map(|(i, mut c)| (i, c.nth(1).unwrap()))
-            .filter(|&(_, c)| c != ' ')
-            .for_each(|(i, c)| vec[i].push(c)));
+    for line in boxes.lines() {
+        let mut chunks = line.bytes().enumerate().array_chunks();
+        while let Some([_, (i, c), _, _]) = chunks.next() {
+            if c != b' ' { vec[i / 4].push(c) }
+        }
+        if let &[_, (i, c), _] = chunks.into_remainder().unwrap().as_slice() {
+            vec[i / 4].push(c)
+        }
+    }
     vec.iter_mut()
         .for_each(|vec| vec.reverse());
 
@@ -75,6 +77,7 @@ fn part1((boxes, steps): &Input) -> String {
     }
     boxes.into_iter()
         .map(|mut vec| vec.pop().unwrap())
+        .map(char::from)
         .collect()
 }
 
@@ -83,12 +86,15 @@ fn part2((boxes, steps): &Input) -> String {
     let mut boxes = boxes.clone();
     for &Step { n, from, to } in steps {
         let range_start = boxes[from as usize].len() - n as usize;
-        let crates = boxes[from as usize]
-            .drain(range_start..)
-            .collect_vec();
-        boxes[to as usize].extend(crates);
+        for i in range_start..boxes[from as usize].len() {
+            let r#box = boxes[from as usize][i];
+            boxes[to as usize].push(r#box);
+        }
+        boxes[from as usize]
+            .drain(range_start..);
     }
     boxes.into_iter()
         .map(|mut vec| vec.pop().unwrap())
+        .map(char::from)
         .collect()
 }
