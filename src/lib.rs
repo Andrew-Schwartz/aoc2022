@@ -5,6 +5,7 @@
 #![feature(generic_const_exprs)]
 #![feature(iter_array_chunks)]
 #![feature(type_alias_impl_trait)]
+#![feature(array_windows)]
 
 #![warn(clippy::pedantic)]
 
@@ -14,5 +15,6 @@ mod day02;
 mod day03;
 mod day04;
 mod day05;
+mod day06;
 
 aoc_runner_derive::aoc_lib! { year = 2022 }
