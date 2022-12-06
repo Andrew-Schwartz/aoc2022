@@ -15,20 +15,20 @@ type Input = (Vec<Vec<char>>, Vec<Step>);
 
 #[derive(Debug)]
 struct Step {
-    n: usize,
-    from: usize,
-    to: usize,
+    n: u8,
+    from: u8,
+    to: u8,
 }
 
 impl Step {
     fn parse(input: &str) -> IResult<&str, Self> {
         tuple((
             tag("move "),
-            number::<usize>,
+            number::<u8>,
             tag(" from "),
-            number::<usize>,
+            number::<u8>,
             tag(" to "),
-            number::<usize>,
+            number::<u8>,
         )).map(|(_, n, _, from, _, to)| Self {
             n,
             from: from - 1,
@@ -69,8 +69,8 @@ fn part1((boxes, steps): &Input) -> String {
     let mut boxes = boxes.clone();
     for &Step { n, from, to } in steps {
         for _ in 0..n {
-            let from = boxes[from].pop().unwrap();
-            boxes[to].push(from);
+            let from = boxes[from as usize].pop().unwrap();
+            boxes[to as usize].push(from);
         }
     }
     boxes.into_iter()
@@ -82,11 +82,11 @@ fn part1((boxes, steps): &Input) -> String {
 fn part2((boxes, steps): &Input) -> String {
     let mut boxes = boxes.clone();
     for &Step { n, from, to } in steps {
-        let range_start = boxes[from].len() - n;
-        let crates = boxes[from]
+        let range_start = boxes[from as usize].len() - n as usize;
+        let crates = boxes[from as usize]
             .drain(range_start..)
             .collect_vec();
-        boxes[to].extend(crates);
+        boxes[to as usize].extend(crates);
     }
     boxes.into_iter()
         .map(|mut vec| vec.pop().unwrap())
