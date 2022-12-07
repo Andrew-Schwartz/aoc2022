@@ -8,7 +8,7 @@ use nom::{
     sequence::tuple,
 };
 
-use crate::utils::{ByteLines, number, SplitSliceOnce};
+use crate::utils::{ByteLines, number, SliceSplitting};
 
 type Input = (Vec<Vec<u8>>, Vec<Step>);
 

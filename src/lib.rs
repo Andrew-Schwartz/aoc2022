@@ -8,6 +8,7 @@
 #![feature(array_windows)]
 #![feature(unboxed_closures)]
 #![feature(fn_traits)]
+#![feature(is_some_and)]
 
 #![warn(clippy::pedantic)]
 

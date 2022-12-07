@@ -1,4 +1,4 @@
-use std::array;
+use std::{array, mem};
 use std::ops::{Add, Mul};
 use std::slice::Split;
 use std::str::FromStr;
@@ -79,6 +79,21 @@ tuple_iter!(0 1 2 3 4 5 6);
 tuple_iter!(0 1 2 3 4 5 6 7);
 tuple_iter!(0 1 2 3 4 5 6 7 8);
 tuple_iter!(0 1 2 3 4 5 6 7 8 9);
+
+// pub fn take_until0<T, I, E: ParseError<I>>(
+//     tag: T
+// ) -> impl Fn(I) -> IResult<I, I, E>
+//     where
+//         I: InputTake + FindSubstring<T> + InputLength,
+//         T: InputLength + Clone,
+// {
+//     move |i| {
+//         let t = tag.clone();
+//         let idx = i.find_substring(t)
+//             .unwrap_or_else(|| i.input_len());
+//         Ok(i.take_split(idx))
+//     }
+// }
 
 pub trait Number: FromStr + From<u8> + Add<Output=Self> + Mul<Output=Self> {
     const ZERO: Self;
@@ -182,12 +197,21 @@ impl<'a> ByteLines<'a> for &'a [u8] {
     }
 }
 
-pub trait SplitSliceOnce<'a, T>: 'a {
+pub trait SliceSplitting<'a, T>: 'a {
+    fn splits<'p, const N: usize>(self, pattern: &'p [T; N]) -> SliceSplit<'a, 'p, T, N>;
+
     fn split_once<const N: usize>(self, pattern: &[T; N]) -> Option<(&'a [T], &'a [T])>;
     fn rsplit_once<const N: usize>(self, pattern: &[T; N]) -> Option<(&'a [T], &'a [T])>;
 }
 
-impl<'a, T: PartialEq> SplitSliceOnce<'a, T> for &'a [T] {
+impl<'a, T: PartialEq> SliceSplitting<'a, T> for &'a [T] {
+    fn splits<'p, const N: usize>(self, pattern: &'p [T; N]) -> SliceSplit<'a, 'p, T, N> {
+        SliceSplit {
+            slice: self,
+            pattern,
+        }
+    }
+
     fn split_once<const N: usize>(self, pattern: &[T; N]) -> Option<(&'a [T], &'a [T])> {
         self.array_windows()
             .position(|window| window == pattern)
@@ -206,3 +230,150 @@ impl<'a, T: PartialEq> SplitSliceOnce<'a, T> for &'a [T] {
             })
     }
 }
+
+pub struct SliceSplit<'s, 'p, T, const N: usize> {
+    slice: &'s [T],
+    pattern: &'p [T; N],
+}
+
+impl<'s, 'p, T: PartialEq, const N: usize> Iterator for SliceSplit<'s, 'p, T, N> {
+    type Item = &'s [T];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.slice.is_empty() {
+            None
+        } else {
+            if let Some((a, rest)) = self.slice.split_once(self.pattern) {
+                self.slice = rest;
+                Some(a)
+            } else {
+                Some(mem::take(&mut self.slice))
+            }
+        }
+    }
+}
+
+// pub fn separated_iter0<I, O, O2, F, G>(
+//     input: I,
+//     sep: G,
+//     f: F,
+// ) -> SeparatedIter0<I, O, O2, F, G> {
+//     SeparatedIter0 {
+//         input,
+//         sep,
+//         f,
+//         state: Default::default(),
+//         types: Default::default(),
+//     }
+// }
+//
+// pub struct SeparatedIter0<I, O, O2, F, G> {
+//     input: I,
+//     sep: G,
+//     f: F,
+//     state: State<I>,
+//     types: PhantomData<(O, O2)>,
+// }
+//
+// // impl<I, O, O2, F, G> SeparatedIter0<I, O, O2, F, G> {
+// //     pub fn finish(self) -> IResult<I, ()> {
+// //         match self.state {
+// //             State::StartUnparsed
+// //             | State::RunningSeparated
+// //             | State::Done => Ok((self.input, ())),
+// //             State::Failure(e) => Err(nom::Err::Failure(e)),
+// //             State::Incomplete(needed) => Err(nom::Err::Incomplete(needed)),
+// //         }
+// //     }
+// // }
+//
+// #[derive(Default)]
+// enum State<I> {
+//     #[default]
+//     StartUnparsed,
+//     RunningSeparated,
+//     Done,
+//     Failure(nom::error::Error<I>),
+//     Incomplete(Needed),
+// }
+//
+// impl<I, O, O2, F, G> Iterator for SeparatedIter0<I, O, O2, F, G>
+//     where F: Parser<I, O, nom::error::Error<I>>,
+//           G: Parser<I, O2, nom::error::Error<I>>,
+//           I: Clone + InputLength + Debug,
+// {
+//     type Item = O;
+//
+//     fn next(&mut self) -> Option<Self::Item> {
+//         match self.state {
+//             State::StartUnparsed => {
+//                 match self.f.parse(self.input.clone()) {
+//                     Ok((i1, o)) => {
+//                         self.state = State::RunningSeparated;
+//                         self.input = i1;
+//                         Some(o)
+//                     }
+//                     Err(nom::Err::Error(_)) => {
+//                         self.state = State::Done;
+//                         None
+//                     }
+//                     Err(nom::Err::Failure(e)) => {
+//                         self.state = State::Failure(e);
+//                         None
+//                     }
+//                     Err(nom::Err::Incomplete(needed)) => {
+//                         println!("SU needed = {:?}", needed);
+//                         self.state = State::Incomplete(needed);
+//                         None
+//                     }
+//                 }
+//             }
+//             State::RunningSeparated => {
+//                 let len = self.input.input_len();
+//                 match self.sep.parse(self.input.clone()) {
+//                     Ok((i1, _o)) => {
+//                         // infinite loop check: the parser must always consume
+//                         if i1.input_len() == len {
+//                             self.state = State::Failure(Error::from_error_kind(i1, ErrorKind::SeparatedList));
+//                             None
+//                         } else {
+//                             match self.f.parse(i1.clone()) {
+//                                 Ok((i2, o)) => {
+//                                     self.input = i2;
+//                                     Some(o)
+//                                 }
+//                                 Err(nom::Err::Error(_)) => {
+//                                     self.state = State::Done;
+//                                     None
+//                                 }
+//                                 Err(nom::Err::Failure(e)) => {
+//                                     self.state = State::Failure(e);
+//                                     None
+//                                 }
+//                                 Err(nom::Err::Incomplete(needed)) => {
+//                                     println!("RS.parse needed = {:?}", needed);
+//                                     self.state = State::Incomplete(needed);
+//                                     None
+//                                 }
+//                             }
+//                         }
+//                     }
+//                     Err(nom::Err::Error(_)) => {
+//                         self.state = State::Done;
+//                         None
+//                     }
+//                     Err(nom::Err::Failure(e)) => {
+//                         self.state = State::Failure(e);
+//                         None
+//                     }
+//                     Err(nom::Err::Incomplete(_needed)) => {
+//                         // println!("RS needed = {:?}", needed);
+//                         self.state = State::Done;
+//                         None
+//                     }
+//                 }
+//             }
+//             State::Done | State::Failure(_) | State::Incomplete(_) => None
+//         }
+//     }
+// }
