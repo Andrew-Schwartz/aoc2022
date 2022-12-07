@@ -28,24 +28,24 @@ fn gen(input: &[u8]) -> Vec<Input> {
 }
 
 #[aoc(day4, part1)]
-fn part1(input: &Vec<Input>) -> usize {
+fn part1(input: &[Input]) -> usize {
     fn contains(a: &Range<u8>, b: &Range<u8>) -> bool {
         a.start <= b.start && a.end >= b.end
     }
 
-    input.into_iter()
+    input.iter()
         .filter(|(a, b)| contains(a, b) || contains(b, a))
         .count()
 }
 
 #[aoc(day4, part2)]
-fn part2(input: &Vec<Input>) -> usize {
+fn part2(input: &[Input]) -> usize {
     fn overlaps(a: &Range<u8>, b: &Range<u8>) -> bool {
         let (start, end) = (a.start, a.end);
         b.start <= start && start <= b.end || b.start <= end && end <= b.end
     }
 
-    input.into_iter()
+    input.iter()
         .filter(|(a, b)| overlaps(a, b) || overlaps(b, a))
         .count()
 }

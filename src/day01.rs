@@ -1,7 +1,7 @@
 use aoc_runner_derive::aoc;
 use arrayvec::ArrayVec;
 
-use crate::utils::{ByteLines, ParseNumber, SliceSplitting, TryRemove};
+use crate::utils::{ByteStringExt, ParseNumber, SliceSplitting, TryRemove};
 
 type Input = [u8];
 

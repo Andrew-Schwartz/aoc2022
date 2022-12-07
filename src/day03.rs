@@ -4,6 +4,7 @@ use std::ops::BitOr;
 use aoc_runner_derive::aoc;
 use crate::utils::TupleIter;
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 fn score(c: &u8) -> u64 {
     match c {
         lower @ b'a'..=b'z' => lower - b'a' + 1,

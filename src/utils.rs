@@ -134,7 +134,7 @@ impl<'a> ParseNumber for &'a [u8] {
             .rev()
             .enumerate()
             .try_fold(N::ZERO, |n, (exp, &char)| {
-                (b'0' <= char && char <= b'9')
+                (b'0'..=b'9').contains(&char)
                     .then(|| n + N::from(char - b'0') * N::TEN.pow(exp as _))
             })
     }
@@ -187,13 +187,26 @@ impl FnMut<(&u8, )> for NewLine {
     }
 }
 
-pub trait ByteLines<'a>: 'a {
+pub trait ByteStringExt<'a>: 'a {
     fn lines(self) -> Split<'a, u8, NewLine>;
+
+    fn trim(self) -> Self;
 }
 
-impl<'a> ByteLines<'a> for &'a [u8] {
+impl<'a> ByteStringExt<'a> for &'a [u8] {
     fn lines(self) -> Split<'a, u8, NewLine> {
         self.split(NewLine)
+    }
+
+    fn trim(self) -> Self {
+        let start = self.iter()
+            .take_while(|c| c.is_ascii_whitespace())
+            .count();
+        let end = self.iter()
+            .rev()
+            .take_while(|c| c.is_ascii_whitespace())
+            .count();
+        &self[start..self.len() - end]
     }
 }
 
@@ -242,13 +255,11 @@ impl<'s, 'p, T: PartialEq, const N: usize> Iterator for SliceSplit<'s, 'p, T, N>
     fn next(&mut self) -> Option<Self::Item> {
         if self.slice.is_empty() {
             None
+        } else if let Some((a, rest)) = self.slice.split_once(self.pattern) {
+            self.slice = rest;
+            Some(a)
         } else {
-            if let Some((a, rest)) = self.slice.split_once(self.pattern) {
-                self.slice = rest;
-                Some(a)
-            } else {
-                Some(mem::take(&mut self.slice))
-            }
+            Some(mem::take(&mut self.slice))
         }
     }
 }

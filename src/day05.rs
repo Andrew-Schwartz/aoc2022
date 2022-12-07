@@ -8,7 +8,7 @@ use nom::{
     sequence::tuple,
 };
 
-use crate::utils::{ByteLines, number, SliceSplitting};
+use crate::utils::{ByteStringExt, number, SliceSplitting};
 
 type Input = (Vec<Vec<u8>>, Vec<Step>);
 
@@ -46,11 +46,11 @@ fn gen(input: &[u8]) -> Input {
     let mut vec = vec![Vec::new(); len as _];
     for line in boxes.lines() {
         let mut chunks = line.iter().enumerate().array_chunks();
-        while let Some([_, (i, &c), _, _]) = chunks.next() {
+        for [_, (i, &c), _, _] in chunks.by_ref() {
             if c != b' ' { vec[i / 4].push(c) }
         }
         if let &[_, (i, &c), _] = chunks.into_remainder().unwrap().as_slice() {
-            vec[i / 4].push(c)
+            vec[i / 4].push(c);
         }
     }
     vec.iter_mut()

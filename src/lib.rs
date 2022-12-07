@@ -11,6 +11,7 @@
 #![feature(is_some_and)]
 
 #![warn(clippy::pedantic)]
+#![allow(clippy::cast_possible_truncation)]
 
 mod utils;
 mod day01;
@@ -19,5 +20,6 @@ mod day03;
 mod day04;
 mod day05;
 mod day06;
+mod day07;
 
 aoc_runner_derive::aoc_lib! { year = 2022 }
