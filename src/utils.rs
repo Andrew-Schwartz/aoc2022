@@ -80,6 +80,40 @@ tuple_iter!(0 1 2 3 4 5 6 7);
 tuple_iter!(0 1 2 3 4 5 6 7 8);
 tuple_iter!(0 1 2 3 4 5 6 7 8 9);
 
+pub trait TupleType<const N: usize> {
+    type Type;
+}
+
+impl<T0> TupleGet<0> for (T0, ) {
+    type Type = T0;
+
+    fn get(self) -> Self::Type {
+        self.0
+    }
+}
+
+impl<T0, T1> TupleGet<0> for (T0, T1, ) {
+    type Type = T0;
+
+    fn get(self) -> Self::Type {
+        self.0
+    }
+}
+
+impl<T0, T1> TupleGet<1> for (T0, T1, ) {
+    type Type = T1;
+
+    fn get(self) -> Self::Type {
+        self.1
+    }
+}
+
+pub trait TupleGet<const N: usize> {
+    type Type;
+
+    fn get(self) -> Self::Type;
+}
+
 // pub fn take_until0<T, I, E: ParseError<I>>(
 //     tag: T
 // ) -> impl Fn(I) -> IResult<I, I, E>
@@ -199,13 +233,13 @@ impl<'a> ByteStringExt<'a> for &'a [u8] {
     }
 
     fn trim(self) -> Self {
-        let start = self.iter()
-            .take_while(|c| c.is_ascii_whitespace())
-            .count();
-        let end = self.iter()
-            .rev()
-            .take_while(|c| c.is_ascii_whitespace())
-            .count();
+        fn count_whitespace<'a, I: Iterator<Item=&'a u8>>(i: I) -> usize {
+            i.take_while(|c| c.is_ascii_whitespace())
+                .count()
+        }
+
+        let start = count_whitespace(self.iter());
+        let end = count_whitespace(self.iter().rev());
         &self[start..self.len() - end]
     }
 }
@@ -260,6 +294,16 @@ impl<'s, 'p, T: PartialEq, const N: usize> Iterator for SliceSplit<'s, 'p, T, N>
             Some(a)
         } else {
             Some(mem::take(&mut self.slice))
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        if self.slice.is_empty() {
+            (0, Some(0))
+        } else {
+            // If the predicate doesn't match anything, we yield one slice.
+            // If it matches every element, we yield `len() / N + 1` empty slices.
+            (1, Some(self.slice.len() / N + 1))
         }
     }
 }
