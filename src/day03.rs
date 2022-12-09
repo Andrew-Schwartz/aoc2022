@@ -2,7 +2,7 @@ use std::hint::unreachable_unchecked;
 use std::ops::BitOr;
 
 use aoc_runner_derive::aoc;
-use crate::utils::TupleIter;
+use crate::utils::{ByteStringExt, TupleIter};
 
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn score(c: &u8) -> u64 {
@@ -23,7 +23,7 @@ fn to_bits(chars: &[u8]) -> u64 {
 
 #[aoc(day3, part1)]
 fn part1(input: &[u8]) -> u32 {
-    input.split(|&c| c == b'\n')
+    input.lines()
         .map(|l| l.split_at(l.len() / 2).tuple_map(to_bits))
         .map(|(a, b)| a & b)
         .map(u64::trailing_zeros)

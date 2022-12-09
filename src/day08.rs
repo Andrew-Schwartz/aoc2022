@@ -2,8 +2,6 @@ use std::ops::ControlFlow;
 
 use aoc_runner_derive::aoc;
 
-use crate::utils::TupleGet;
-
 type Input = [u8];
 
 const LEN: usize = 99;
@@ -22,20 +20,28 @@ fn part1(_input: &Input) -> usize {
     // borders
     let mut visible = 4 * LEN - 4;
 
+    // for loops are apparantly faster than `.filter().count()`
     for (row, line) in lines.into_iter().enumerate().skip(1).take(LEN - 2) {
-        let new = line.into_iter()
-            .copied()
-            .enumerate()
-            .skip(1).take(LEN - 2)
-            .filter(|&(col, h)| {
-                let shorter = |oh: &u8| *oh < h;
-                let left = line[..col].into_iter().all(shorter);
-                let right = line[col + 1..].into_iter().all(shorter);
-                let up = (0..row).map(|r| &lines[r][col]).all(shorter);
-                let down = (row + 1..LEN).map(|r| &lines[r][col]).all(shorter);
-                left || right || up || down
-            }).count();
-        visible += new;
+        for (col, h) in line.into_iter().copied().enumerate().skip(1).take(LEN - 2) {
+            let shorter = |oh: &u8| *oh < h;
+            let left = line[..col].into_iter().all(shorter);
+            if left {
+                visible += 1;
+                continue
+            }
+            let right = line[col + 1..].into_iter().all(shorter);
+            if right {
+                visible += 1;
+                continue
+            }
+            let up = (0..row).map(|r| &lines[r][col]).all(shorter);
+            if up {
+                visible += 1;
+                continue
+            }
+            let down = (row + 1..LEN).map(|r| &lines[r][col]).all(shorter);
+            visible += down as usize;
+        }
     }
 
     visible
@@ -47,30 +53,26 @@ fn part2(_input: &Input) -> usize {
 
     let mut max = 0;
     for (row, line) in lines.into_iter().enumerate().skip(1).take(LEN - 2) {
-        let new = line.into_iter()
-            .copied()
-            .enumerate()
-            .skip(1).take(LEN - 2)
-            .map(|(col, h)| {
-                fn look<I: Iterator<Item=&'static u8>>(mut i: I, h: u8) -> usize {
-                    // i.position(|oh| *oh >= h).map_or_else(|| i.count(), |c| c + 1)
-                    let (ControlFlow::Continue(c) | ControlFlow::Break(c)) = i.try_fold(0, |count, &oh| if oh < h {
-                        ControlFlow::Continue(count + 1)
-                    } else {
-                        ControlFlow::Break(count + 1)
-                    });
-                    c
-                }
-                let left = look(line[..col].into_iter().rev(), h);
-                let right = look(line[col + 1..LEN].into_iter(), h);
-                let up = look((0..row).rev().map(|r| &lines[r][col]), h);
-                let down = look((row + 1..LEN).map(|r| &lines[r][col]), h);
-                // println!("left = {:?}", left);
-                left * right * up * down
-            }).max()
-            .unwrap();
-        // println!("new = {:?}", new);
-        if new > max { max = new; }
+        for (col, h) in line.into_iter().copied().enumerate().skip(1).take(LEN - 2) {
+            fn look<I: Iterator<Item=&'static u8>>(mut i: I, h: u8) -> usize {
+                let (ControlFlow::Continue(c) | ControlFlow::Break(c)) = i.try_fold(0, |count, &oh| if oh < h {
+                    ControlFlow::Continue(count + 1)
+                } else {
+                    ControlFlow::Break(count + 1)
+                });
+                c
+            }
+            let left = look(line[..col].into_iter().rev(), h);
+            if left == 0 { continue }
+            let right = look(line[col + 1..LEN].into_iter(), h);
+            if right == 0 { continue }
+            let up = look((0..row).rev().map(|r| &lines[r][col]), h);
+            if up == 0 { continue }
+            let down = look((row + 1..LEN).map(|r| &lines[r][col]), h);
+            if down == 0 { continue }
+            let visible = left * right * up * down;
+            if visible > max { max = visible; }
+        }
     }
 
     max

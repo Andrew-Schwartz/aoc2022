@@ -12,11 +12,13 @@
 #![feature(portable_simd)]
 #![feature(array_chunks)]
 #![feature(slice_as_chunks)]
+#![feature(try_blocks)]
+#![feature(split_array)]
 
 #![warn(clippy::pedantic)]
 #![allow(clippy::cast_possible_truncation)]
 
-mod utils;
+pub mod utils;
 mod day01;
 mod day02;
 mod day03;

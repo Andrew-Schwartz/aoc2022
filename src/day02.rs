@@ -1,8 +1,9 @@
 use std::hint::unreachable_unchecked;
 use aoc_runner_derive::aoc;
+use crate::utils::ByteStringExt;
 
 fn gen(input: &[u8]) -> impl Iterator<Item=(u8, u8)> + '_ {
-    input.split(|&c| c == b'\n')
+    input.lines()
         .map(|line| match line {
             &[a, b' ', b] => (a, b),
             _ => unsafe { unreachable_unchecked() },

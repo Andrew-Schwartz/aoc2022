@@ -33,28 +33,6 @@ use crate::utils::{ByteStringExt, ParseNumber, SliceSplitting};
 #[derive(Debug)]
 struct Dir<'a>(&'a [u8], Vec<Dir<'a>>, Vec<File<'a>>);
 
-// impl<'a> Display for Dir<'a> {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         struct DisplayDir<'a, 'b>(usize, &'b Dir<'a>);
-//
-//         impl<'a> Display for DisplayDir<'a, '_> {
-//             fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//                 let spaces = "  ".repeat(self.0);
-//                 writeln!(f, "{spaces}- {} (dir)", self.1.0)?;
-//                 for sub_dir in &self.1.1 {
-//                     write!(f, "{}", DisplayDir(self.0 + 1, sub_dir))?;
-//                 }
-//                 for file in &self.1.2 {
-//                     writeln!(f, "  {spaces}{file}")?;
-//                 }
-//                 Ok(())
-//             }
-//         }
-//
-//         DisplayDir(0, self).fmt(f)
-//     }
-// }
-
 impl<'a> Dir<'a> {
     fn new(name: &'a Input) -> Self {
         Self(name, vec![], vec![])
@@ -63,12 +41,6 @@ impl<'a> Dir<'a> {
 
 #[derive(Debug)]
 struct File<'a>(&'a Input, usize);
-
-// impl<'a> Display for File<'a> {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "- {} (file, size={})", self.0, self.1)
-//     }
-// }
 
 impl<'a> File<'a> {
     fn new(name: &'a Input, bytes: &Input) -> Self {
