@@ -14,6 +14,8 @@
 #![feature(slice_as_chunks)]
 #![feature(try_blocks)]
 #![feature(split_array)]
+#![feature(array_zip)]
+#![feature(array_methods)]
 
 #![warn(clippy::pedantic)]
 #![allow(clippy::cast_possible_truncation)]
@@ -27,5 +29,6 @@ mod day05;
 mod day06;
 mod day07;
 mod day08;
+mod day09;
 
 aoc_runner_derive::aoc_lib! { year = 2022 }

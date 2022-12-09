@@ -1,9 +1,8 @@
-use aoc_runner_derive::aoc;
+use aoc_runner_derive::{aoc, aoc_generator};
 use nom::{IResult, Parser};
 use nom::character::complete::{char, newline};
-use nom::combinator::{iterator, ParserIterator};
 use nom::multi::separated_list0;
-use nom::sequence::{separated_pair, terminated};
+use nom::sequence::separated_pair;
 
 use crate::utils::{number, TupleIter};
 
@@ -19,7 +18,7 @@ fn parse_line(input: &[u8]) -> IResult<&[u8], Input> {
 }
 
 // // lol how is the Vec faster
-// #[aoc_generator(day4)]
+#[aoc_generator(day4)]
 fn gen(input: &[u8]) -> Vec<Input> {
     separated_list0(newline, parse_line).parse(input)
         .unwrap()
@@ -38,7 +37,7 @@ fn part1(input: &[Input]) -> usize {
 }
 
 #[aoc(day4, part2)]
-fn part2(input: &[u8]) -> usize {
+fn part2(input: &[Input]) -> usize {
     fn overlaps(a: &[u8; 2], b: &[u8; 2]) -> bool {
         let (start, end) = (a[0], a[1]);
         b[0] <= start && start <= b[1] || b[0] <= end && end <= b[1]
