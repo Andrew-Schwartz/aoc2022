@@ -44,26 +44,24 @@ fn adj((y, x): Pt) -> impl Iterator<Item=Pt> {
 
 #[allow(clippy::cast_possible_wrap)]
 fn shortest_path(find_a: bool) -> u32 {
-    let input = GRID;
+    let mut input = GRID;
 
     let [end, start] = [b'E', b'S'].map(|pt| input.iter()
         .enumerate()
         .find_map(|(r, &row)| row.find(&pt).map(|c| (c, r)))
         .unwrap());
+    input[end.1][end.0] = b'z';
+    input[start.1][start.0] = b'a';
+    let input = input;
 
     let mut dist = array2_like(&GRID, 0);
     let mut active = vec![end];
 
     while get(&dist, start) == 0 || adj(start).any(|pt| get(&dist, pt) == 0) {
         let pt = active.remove(0);
-        let height = match get(&input, pt) {
-            b'Z' => b'z',
-            b'S' => b'a',
-            height => height,
-        } as i8;
+        let height = get(&input, pt) as i8;
         for adj_pt in adj(pt) {
-            let adj_height = get(&input, adj_pt);
-            let adj_height = if adj_height == b'S' { b'a' } else { adj_height } as i8;
+            let adj_height = get(&input, adj_pt) as i8;
             if height - adj_height <= 1 {
                 let adj_dist = get(&dist, adj_pt);
                 if (adj_dist == 0 && adj_pt != end) || adj_dist >= get(&dist, pt) {

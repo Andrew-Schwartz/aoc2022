@@ -1,6 +1,6 @@
 use aoc_runner_derive::aoc;
 
-use crate::utils::{ByteStringExt, ParseNumber, SliceConstExt, SliceSplitting};
+use crate::utils::{ByteStringExt, ParseNumber, SliceSplitting};
 
 /*
             alt((
