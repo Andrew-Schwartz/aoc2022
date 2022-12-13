@@ -23,6 +23,7 @@ pub trait SliceConstExt<T> {
     fn find(&self, item: &T) -> Option<usize> where T: ~const PartialEq;
     fn const_split_array_ref<const N: usize>(&self) -> (&[T; N], &[T]);
 
+    fn take_1(self: &mut &Self) -> &T;
     fn take_arr<const N: usize>(self: &mut &Self) -> &[T; N];
     fn take_n(self: &mut &Self, n: usize) -> &[T];
 }
@@ -61,5 +62,10 @@ impl<T> const SliceConstExt<T> for [T] {
         let (a, b) = self.const_split_array_ref();
         *self = b;
         a
+    }
+
+    fn take_1(self: &mut &Self) -> &T {
+        let [t] = self.take_arr::<1>();
+        t
     }
 }
