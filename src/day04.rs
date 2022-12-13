@@ -27,6 +27,7 @@ fn gen(input: &[u8]) -> Vec<Input> {
 
 #[aoc(day4, part1)]
 fn part1(input: &[Input]) -> usize {
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn contains(a: &[u8; 2], b: &[u8; 2]) -> bool {
         a[0] <= b[0] && a[1] >= b[1]
     }
@@ -38,6 +39,7 @@ fn part1(input: &[Input]) -> usize {
 
 #[aoc(day4, part2)]
 fn part2(input: &[Input]) -> usize {
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn overlaps(a: &[u8; 2], b: &[u8; 2]) -> bool {
         let (start, end) = (a[0], a[1]);
         b[0] <= start && start <= b[1] || b[0] <= end && end <= b[1]

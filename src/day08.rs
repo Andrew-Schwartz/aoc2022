@@ -21,15 +21,15 @@ fn part1(_input: &Input) -> usize {
     let mut visible = 4 * LEN - 4;
 
     // for loops are apparantly faster than `.filter().count()`
-    for (row, line) in lines.into_iter().enumerate().skip(1).take(LEN - 2) {
-        for (col, h) in line.into_iter().copied().enumerate().skip(1).take(LEN - 2) {
+    for (row, line) in lines.iter().enumerate().skip(1).take(LEN - 2) {
+        for (col, h) in line.iter().copied().enumerate().skip(1).take(LEN - 2) {
             let shorter = |oh: &u8| *oh < h;
-            let left = line[..col].into_iter().all(shorter);
+            let left = line[..col].iter().all(shorter);
             if left {
                 visible += 1;
                 continue
             }
-            let right = line[col + 1..].into_iter().all(shorter);
+            let right = line[col + 1..].iter().all(shorter);
             if right {
                 visible += 1;
                 continue
@@ -52,8 +52,8 @@ fn part2(_input: &Input) -> usize {
     let lines = gen();
 
     let mut max = 0;
-    for (row, line) in lines.into_iter().enumerate().skip(1).take(LEN - 2) {
-        for (col, h) in line.into_iter().copied().enumerate().skip(1).take(LEN - 2) {
+    for (row, line) in lines.iter().enumerate().skip(1).take(LEN - 2) {
+        for (col, h) in line.iter().copied().enumerate().skip(1).take(LEN - 2) {
             fn look<I: Iterator<Item=&'static u8>>(mut i: I, h: u8) -> usize {
                 let (ControlFlow::Continue(c) | ControlFlow::Break(c)) = i.try_fold(0, |count, &oh| if oh < h {
                     ControlFlow::Continue(count + 1)
@@ -62,9 +62,9 @@ fn part2(_input: &Input) -> usize {
                 });
                 c
             }
-            let left = look(line[..col].into_iter().rev(), h);
+            let left = look(line[..col].iter().rev(), h);
             if left == 0 { continue }
-            let right = look(line[col + 1..LEN].into_iter(), h);
+            let right = look(line[col + 1..LEN].iter(), h);
             if right == 0 { continue }
             let up = look((0..row).rev().map(|r| &lines[r][col]), h);
             if up == 0 { continue }

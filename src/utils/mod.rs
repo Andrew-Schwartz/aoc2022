@@ -3,15 +3,21 @@ use std::array;
 use arrayvec::ArrayVec;
 use itertools::Itertools;
 
+pub use const_utils::*;
 pub use parsing::*;
 pub use slice::*;
 pub use tuple::*;
 
+mod const_utils;
 mod parsing;
 mod tuple;
 mod slice;
 
 pub trait CollectArray<T> {
+    /// # Errors
+    ///
+    /// If this iter contains less than N items, returns an iterator over those items.
+    /// If it contains more than N items, returns a Vec of the items.
     fn collect_array<const N: usize>(self) -> Result<[T; N], Result<Vec<T>, array::IntoIter<T, N>>>;
 }
 

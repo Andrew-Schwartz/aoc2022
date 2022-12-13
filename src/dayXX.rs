@@ -1,6 +1,6 @@
 use aoc_runner_derive::aoc;
 
-type Input = &[u8];
+type Input = [u8];
 
 // #[aoc_generator(day)]
 fn gen(input: &Input) -> &[u8] {
