@@ -4,46 +4,10 @@ use aoc_runner_derive::aoc;
 use bitvec::BitArr;
 use bitvec::array::BitArray;
 
-use crate::utils::{ByteStringExt, parse_number, ParseNumber};
+use crate::utils::{SliceConstExt, ByteStringExt, parse_number, ParseNumber};
 
 type Point = i16x2;
 type Input = (Point, u8);
-
-/// xmin xmax, ymin ymax
-#[allow(clippy::many_single_char_names)]
-const fn max_size() -> [[i16; 2]; 2] {
-    let b = include_bytes!("../input/2022/day9.txt");
-    let mut xy = [0; 2];
-    let mut x = [0; 2];
-    let mut y = [0; 2];
-    let mut i = 0;
-    while i < b.len() {
-        let (idx, delta) = match b[i] {
-            b'U' => (1, 1),
-            b'D' => (1, -1),
-            b'L' => (0, -1),
-            b'R' => (0, 1),
-            _ => (0, 0),
-        };
-        i += 2;
-
-        // find newline
-        let mut j = 1;
-        loop {
-            if b[i + j] == b'\n' { break; }
-            j += 1;
-        }
-        let num = b.get(i..i + j).unwrap();
-        let num = parse_number(num);
-        xy[idx] += num * delta;
-        if xy[0] < x[0] { x[0] = xy[0] }
-        if xy[0] > x[1] { x[1] = xy[0] }
-        if xy[1] < y[0] { y[0] = xy[1] }
-        if xy[1] > y[1] { y[1] = xy[1] }
-        i += j + 1;
-    }
-    [x, y]
-}
 
 fn gen(input: &[u8]) -> impl Iterator<Item=Input> + '_ {
     input.lines()
@@ -61,7 +25,34 @@ fn gen(input: &[u8]) -> impl Iterator<Item=Input> + '_ {
 }
 
 fn solve<const N: usize>(input: &[u8]) -> usize {
-    const MAXES: [[i16; 2]; 2] = max_size();
+    #[allow(clippy::many_single_char_names)]
+    const MAXES: [[i16; 2]; 2] = const {
+        let mut b = include_bytes!("../input/2022/day9.txt").as_slice();
+        let mut pos = [0; 2];
+        let mut x = [0; 2];
+        let mut y = [0; 2];
+        while b.len() != 0{
+            let (idx, delta) = match b.take_n(2)[0] {
+                b'U' => (1, 1),
+                b'D' => (1, -1),
+                b'L' => (0, -1),
+                b'R' => (0, 1),
+                _ => (0, 0),
+            };
+
+            let n = b.get(..).unwrap().find(&b'\n').unwrap();
+            let num = parse_number(b.take_n(n));
+
+            pos[idx] += num * delta;
+
+            if pos[0] < x[0] { x[0] = pos[0] }
+            if pos[0] > x[1] { x[1] = pos[0] }
+            if pos[1] < y[0] { y[0] = pos[1] }
+            if pos[1] > y[1] { y[1] = pos[1] }
+            b.take_n(1);
+        }
+        [x, y]
+    };
     const X_MIN: i16 = MAXES[0][0];
     const X_MAX: i16 = MAXES[0][1];
     const SX: usize = (X_MAX - X_MIN + 1) as usize;

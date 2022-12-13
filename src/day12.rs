@@ -3,32 +3,26 @@ use std::mem::MaybeUninit;
 use aoc_runner::identity;
 use aoc_runner_derive::aoc;
 
-use crate::utils::{array2_like, ByteConstExt, split_array_ref};
+use crate::utils::{array2_like, SliceConstExt};
 
 type Input = [u8];
 type Pt = (usize, usize);
 
-// #[aoc_generator(day12)]
-// fn gen(input: &Input) -> &[u8] {
-//     &input
-// }
-
 const WH: Pt = const {
     let input = include_bytes!("../input/2022/day12.txt");
-    let width = input.find(b'\n').unwrap();
+    let width = input.find(&b'\n').unwrap();
     let height = input.len() / width;
     (width, height)
 };
 
 const GRID: [[u8; WH.0]; WH.1] = const {
-    let mut input = include_bytes!("../input/2022/day12.txt").get(..).unwrap();
+    let mut input = include_bytes!("../input/2022/day12.txt").as_slice();
     let mut idx = 0;
     let mut arr = MaybeUninit::uninit_array();
     while idx < WH.1 {
-        let (row, rest) = split_array_ref::<_, { WH.0 }>(input);
-        input = rest.get(1..).unwrap();
-        // let start = WH.0 * idx + idx;
-        // let end = WH.0 * (idx + 1) + idx;
+        let row = input.take_arr();
+        // newline
+        input.take_n(1);
         arr[idx].write(*row);
         idx += 1;
     }
@@ -40,13 +34,11 @@ fn get<T: Copy>(dist: &[[T; WH.0]; WH.1], pt: Pt) -> T {
 }
 
 fn adj((y, x): Pt) -> impl Iterator<Item=Pt> {
-    // underflows if not lazy
-    #[allow(clippy::unnecessary_lazy_evaluations)]
     [
-        (y != 0).then(|| (y - 1, x)),
-        (x != 0).then(|| (y, x - 1)),
-        (y != WH.0 - 1).then(|| (y + 1, x)),
-        (x != WH.1 - 1).then(|| (y, x + 1)),
+        (y != 0).then_some((y.wrapping_sub(1), x)),
+        (x != 0).then_some((y, x.wrapping_sub(1))),
+        (y != WH.0 - 1).then_some((y + 1, x)),
+        (x != WH.1 - 1).then_some((y, x + 1)),
     ].into_iter().filter_map(identity)
 }
 
@@ -56,7 +48,7 @@ fn shortest_path(find_a: bool) -> u32 {
 
     let [end, start] = [b'E', b'S'].map(|pt| input.iter()
         .enumerate()
-        .find_map(|(r, &row)| row.find(pt).map(|c| (c, r)))
+        .find_map(|(r, &row)| row.find(&pt).map(|c| (c, r)))
         .unwrap());
 
     let mut dist = array2_like(&GRID, 0);

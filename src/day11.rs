@@ -1,4 +1,3 @@
-use std::time::Instant;
 use aoc_runner_derive::aoc;
 use nom::{IResult, Parser};
 use nom::branch::alt;
