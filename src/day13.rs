@@ -1,26 +1,19 @@
 use std::cmp::Ordering;
-use std::fmt::Debug;
 use std::hint::unreachable_unchecked;
 
-use aoc_runner_derive::{aoc, aoc_generator};
-use nom::{IResult, Parser};
-use nom::branch::alt;
-use nom::bytes::complete::tag;
-use nom::character::complete::{char, newline};
-use nom::multi::{separated_list0, separated_list1};
-use nom::sequence::{delimited, tuple};
+use aoc_runner_derive::aoc;
 
-use crate::utils::{number, SliceSplitting, TupleIter};
+use crate::utils::{SliceSplitting, TupleIter};
 
-fn cmp(a: &[u8], b: &[u8]) -> Ordering {
+fn less(a: &[u8], b: &[u8]) -> bool {
     let mut a_idx = 0;
     let mut b_idx = 0;
     let mut a_nesting = 0;
     let mut b_nesting = 0;
 
-    let ordering = loop {
-        if a_idx >= a.len() { break Ordering::Less; }
-        if b_idx >= b.len() { break Ordering::Greater; }
+    loop {
+        if a_idx >= a.len() { break true; }
+        if b_idx >= b.len() { break false; }
         match (a[a_idx], b[b_idx]) {
             (a_dig @ b'0'..=b'9', b_dig @ b'0'..=b'9') => {
                 a_idx += 1;
@@ -40,12 +33,12 @@ fn cmp(a: &[u8], b: &[u8]) -> Ordering {
                 match a_n.cmp(&b_n) {
                     Ordering::Equal => {
                         if a_nesting != 0 {
-                            break Ordering::Greater
+                            break false;
                         } else if b_nesting != 0 {
-                            break Ordering::Less
+                            break true;
                         }
                     }
-                    ord => break ord
+                    ord => break ord == Ordering::Less
                 }
             }
             (b'[', b'0'..=b'9') => {
@@ -64,22 +57,21 @@ fn cmp(a: &[u8], b: &[u8]) -> Ordering {
             }
             (b']', _) => {
                 if a_nesting == 0 {
-                    break Ordering::Less;
+                    break true;
                 } else {
                     a_nesting -= 1;
                 }
             }
             (_, b']') => {
                 if b_nesting == 0 {
-                    break Ordering::Greater;
+                    break false;
                 } else {
                     b_nesting -= 1;
                 }
             }
             _ => unsafe { unreachable_unchecked() },
         }
-    };
-    ordering
+    }
 }
 
 #[aoc(day13, part1)]
@@ -87,7 +79,7 @@ fn part1_unparsed(input: &[u8]) -> usize {
     input.splits(b"\n\n")
         .map(|pair| pair.split_once(b"\n").unwrap())
         .enumerate()
-        .filter(|(_, (a, b))| cmp(a, b) == Ordering::Less)
+        .filter(|(_, (a, b))| less(a, b))
         .map(|(idx, _)| idx + 1)
         .sum()
 }
@@ -102,9 +94,9 @@ fn part2_unparsed(input: &[u8]) -> usize {
         .map(|pair| pair.split_once(b"\n").unwrap())
         .flat_map(|tup| tup.tuple_iter())
         .for_each(|packet| {
-            if cmp(packet, el6) == Ordering::Less {
+            if less(packet, el6) {
                 before_el6 += 1;
-                if cmp(packet, el2) == Ordering::Less {
+                if less(packet, el2) {
                     before_el2 += 1;
                 }
             }

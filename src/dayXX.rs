@@ -1,14 +1,14 @@
 use aoc_runner_derive::aoc;
 
-type Input = [u8];
+type Parsed = [u8];
 
 // #[aoc_generator(day)]
-fn gen(input: &Input) -> &[u8] {
+fn gen(input: &[u8]) -> &[u8] {
     &input
 }
 
 #[aoc(day, part1)]
-fn part1(input: &Input) -> u32 {
+fn part1(input: &Parsed) -> u32 {
     let input = gen(input);
 
     1

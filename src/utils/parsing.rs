@@ -1,11 +1,12 @@
 use std::fmt::Debug;
 use std::iter::Product;
-use std::ops::{Add, AddAssign, Mul, Rem};
+use std::ops::{Add, AddAssign, Mul, RangeFrom, Rem};
 use std::str::FromStr;
 
 use nom::{AsChar, InputIter, InputTakeAtPosition, IResult, Parser};
-use nom::character::complete::digit1;
-use nom::combinator::map_opt;
+use nom::character::complete::{char, digit1};
+use nom::combinator::{map_opt, opt};
+use nom::sequence::pair;
 
 // pub fn take_until0<T, I, E: ParseError<I>>(
 //     tag: T
@@ -105,11 +106,20 @@ impl<'a> ParseNumber for &'a [u8] {
 ///
 /// Returns errors if the input can't be parsed as this number type
 pub fn number<I, N>(input: I) -> IResult<I, N>
-    where I: ParseNumber + InputTakeAtPosition + InputIter + Clone,
+    where I: ParseNumber + InputTakeAtPosition + InputIter + nom::Slice<RangeFrom<usize>> + Clone,
           <I as InputIter>::Item: AsChar,
           <I as InputTakeAtPosition>::Item: AsChar,
           N: Number,
-// <N as TryFrom<u32>>::Error: Debug,
 {
-    map_opt(digit1, I::parse_number::<N>).parse(input)
+    map_opt(
+        pair(opt(char('-')), digit1),
+        |(neg, digits)| {
+            let option = I::parse_number::<N>(digits);
+            match neg {
+                Some('-') => option.map(N::neg),
+                None => option,
+                Some(_) => unreachable!(),
+            }
+        }
+    ).parse(input)
 }
